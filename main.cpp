@@ -8,6 +8,7 @@
 
 using namespace std;
 
+// gets number of lines and columns
 void getDimension(int &m,int &n)
 {
     string aux;
@@ -17,6 +18,7 @@ void getDimension(int &m,int &n)
     s>>n;
 }
 
+//get cost of each set (column)
 int *getCosts(int n)
 {
     int counter=0;
@@ -34,6 +36,7 @@ int *getCosts(int n)
     return costs;
 }
 
+//gets covers for each set(dependendo do que agnt for implementar, pode ser necessário mudar isso pra pegar quais sets cobrem cada linha no lugar de quais linhas um set cobre)
 vector<set<int>> getCovers(int n,int m,set<int> &elements)
 {
     vector<set<int>> covers(n);
@@ -72,6 +75,7 @@ vector<set<int>> getCovers(int n,int m,set<int> &elements)
     return covers;
 }
 
+//custo de adição por elemento novo de um set
 double addCost(set<int> cover,set<int> U,int cost)
 {
     set<int> intersection;
@@ -83,7 +87,7 @@ double addCost(set<int> cover,set<int> U,int cost)
     return ((double)cost)/intersection.size();
 }
 
-
+//encontra o set que tem menor custo para ser adicionado
 int minCostSet(vector<set<int>> covers,set<int> U,int *costs)
 {
     int argmin=0,mincost=INT_MAX,cost;
@@ -99,6 +103,7 @@ int minCostSet(vector<set<int>> covers,set<int> U,int *costs)
     return argmin;
 }
 
+//algoritmo greedy básico O(mn^2)
 vector<int> greedyCover(int *costs,vector<set<int>> S,set<int> U,int &totalCost)
 {
     vector<int> cover;
