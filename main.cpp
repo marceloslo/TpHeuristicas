@@ -2,7 +2,9 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <unordered_set>
+#include <climits>
+#include <algorithm>
+#include <set>
 
 using namespace std;
 
@@ -32,9 +34,9 @@ int *getCosts(int n)
     return costs;
 }
 
-vector<unordered_set<int>> getCovers(int n,int m)
+vector<set<int>> getCovers(int n,int m,set<int> &elements)
 {
-    vector<unordered_set<int>> covers(n);
+    vector<set<int>> covers(n);
     string aux;
     bool cnt=true;
     int numberOfSets,counter,elementId=0,setId;
@@ -64,18 +66,70 @@ vector<unordered_set<int>> getCovers(int n,int m)
             s >>  numberOfSets;
             cnt=false;
             counter=0;
+            elements.insert(elementId);
         }
     }
     return covers;
 }
 
+double addCost(set<int> cover,set<int> U,int cost)
+{
+    set<int> intersection;
+    set_intersection(cover.begin(),cover.end(),U.begin(),U.end(),inserter(intersection, intersection.begin()));
+    if(intersection.size()==0)
+    {
+        return INT_MAX;
+    }
+    return ((double)cost)/intersection.size();
+}
+
+
+int minCostSet(vector<set<int>> covers,set<int> U,int *costs)
+{
+    int argmin=0,mincost=INT_MAX,cost;
+    for(int i=0;i<covers.size();i++)
+    {
+        cost = addCost(covers[i],U,costs[i]);
+        if(cost<mincost)
+        {
+            mincost=cost;
+            argmin=i;
+        }
+    }
+    return argmin;
+}
+
+vector<int> greedyCover(int *costs,vector<set<int>> S,set<int> U,int &totalCost)
+{
+    vector<int> cover;
+    totalCost=0;
+    int argmin;
+    while(!U.empty())
+    {
+        //find set with minimum insertion cost(optimally covers all sets)
+        argmin=minCostSet(S,U,costs);
+        //add it to cover
+        cover.push_back(argmin);
+        totalCost+=costs[argmin];
+
+        set<int> update;
+        //U = U - S[i]
+        set_difference(U.begin(),U.end(),S[argmin].begin(),S[argmin].end(),inserter(update, update.begin()));
+        U=update;
+    }
+    return cover;
+}
+
+
 int main(int argc,char* argv[])
 {
     int *costs;
-    int n,m;
+    int n,m,totalCost;
     getDimension(m,n);
     costs=getCosts(n);
-    vector<unordered_set<int>> covers=getCovers(n,m);
+    set<int> elements;
+    vector<set<int>> S=getCovers(n,m,elements);
+    cout<<greedyCover(costs,S,elements,totalCost).size()<<" "<<totalCost<<endl;
 
     return 0;
 }
