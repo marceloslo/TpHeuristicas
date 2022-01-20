@@ -193,17 +193,18 @@ void bee_colony::greedyCover()
 
 //encontra solução aleatória, O(nlogn)
 //pode ser reduzida criando um map em que cada set é mapeia para as linhas que ele cobre(tradeoff espaço x função)
-void bee_colony::randomSolution()
+vector<int> bee_colony::randomSolution(int &cost)
 {
     map<int,vector<int>> remainingRows = this->rows;
+	vector<int> sol;
     int i,set;
     while (!remainingRows.empty())
     {
         //seleciona aleatóriamente um conjunto que cobre a linha atual
         i = randomNumber(remainingRows.begin()->second.size());
         set = remainingRows.begin()->second[i];
-        solution.push_back(set);
-        totalCost += costs[set];
+        sol.push_back(set);
+        cost += costs[set];
 
         //remove ("cobre") todas linhas que contem esse conjunto
         for (auto it = remainingRows.begin();it!=remainingRows.end();)
@@ -219,6 +220,9 @@ void bee_colony::randomSolution()
             }
         }
     }
+	totalCost = cost;
+	this->solution=sol;
+	return sol;
 }
 
 void bee_colony::printResult()

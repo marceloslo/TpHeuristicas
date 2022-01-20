@@ -14,7 +14,7 @@ public:
 	bee_colony();
 	~bee_colony();
 	void greedyCover();
-	void randomSolution();
+	vector<int> randomSolution(int &cost);
 	void printResult();
 
 private:
