@@ -198,6 +198,7 @@ vector<int> bee_colony::randomSolution(int &cost)
     map<int,vector<int>> remainingRows = this->rows;
 	vector<int> sol;
     int i,set;
+	cost=0;
     while (!remainingRows.empty())
     {
         //seleciona aleatóriamente um conjunto que cobre a linha atual
@@ -220,6 +221,7 @@ vector<int> bee_colony::randomSolution(int &cost)
             }
         }
     }
+	//remover as duas linhas abaixo na versão final
 	totalCost = cost;
 	this->solution=sol;
 	return sol;
