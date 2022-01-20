@@ -1,16 +1,13 @@
 #include <iostream>
-#include <sstream>
-#include <string>
-#include <vector>
-#include <climits>
-#include <algorithm>
-#include <set>
+#include <cstdlib>
+#include <ctime>
 #include "bee_colony/bee_colony.hpp"
 
 using namespace std;
 
 int main(int argc,char* argv[])
 {
+	srand(time(NULL));
     bee_colony b;
     b.randomSolution();
     b.printResult();
