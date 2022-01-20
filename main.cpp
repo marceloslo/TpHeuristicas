@@ -12,7 +12,7 @@ using namespace std;
 int main(int argc,char* argv[])
 {
     bee_colony b;
-    b.greedyCover();
+    b.randomSolution();
     b.printResult();
     return 0;
 }
