@@ -129,8 +129,8 @@ double addCost(set<int> cover,set<int> U,int cost)
 //encontra o set que tem menor custo para ser adicionado
 int minCostSet(vector<set<int>> covers,set<int> U,int *costs)
 {
-    int argmin=0,mincost=INT_MAX;
-    double cost;
+    int argmin = 0;
+    double cost,mincost = INT_MAX;
     for(unsigned int i=0;i<covers.size();i++)
     {
         cost = addCost(covers[i],U,costs[i]);
@@ -259,6 +259,18 @@ void bee_colony::printResult()
     cout << "Total cost: " << minCost << endl;
 }
 
+vector<double> bee_colony::waggle(int totalFitness)
+{
+    vector<double> probabilities(nFoodSources);
+    unsigned int f;
+    probabilities[0] = ((double)forager[0].fitness) / totalFitness;
+    for (f = 1; f < probabilities.size(); f++)
+    {
+        probabilities[f] = (((double)forager[f].fitness) / totalFitness) + probabilities[f - 1];
+    }
+    return probabilities;
+}
+
 void bee_colony::abandonFoodSources()
 {
     for (vector<bee>::iterator it = onlooker.begin(); it != onlooker.end();)
@@ -277,10 +289,10 @@ void bee_colony::abandonFoodSources()
 
 void bee_colony::beeColony()
 {
+    int k = 0, totalFitness = 0, foodSourceFitness;
+    unsigned int f, o, s;
+    vector<double> probabilities;
     initialize(nFoodSources);
-    int k = 0, totalFitness=0, foodSourceFitness;
-    vector<double> probabilities(nFoodSources);
-    unsigned int f,o,s;
     while (k < this->maxIter)
     {
         totalFitness = 0;
@@ -300,11 +312,8 @@ void bee_colony::beeColony()
 
         //fase das abelhas onlooker 
         //probabilidades cumulativas "waggle dance"
-        probabilities[0] = ((double)forager[0].fitness) / totalFitness;
-        for (f = 1; f < probabilities.size(); f++)
-        {
-            probabilities[f] = (((double)forager[f].fitness) / totalFitness) + probabilities[f - 1];
-        }
+        probabilities = waggle(totalFitness);
+        //abelhas onlooker exploram vizinhança das foodSources
         for (o = 0; o < onlooker.size(); o++)
         {
             //number between 0 and 1 (faixa de probabilidade escolhida)

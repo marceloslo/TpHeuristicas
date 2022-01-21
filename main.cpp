@@ -9,8 +9,8 @@ int main(int argc,char* argv[])
 {
 	srand(time(NULL));
 	int cost;
-    bee_colony b;
-    b.randomSolution(cost);
+    bee_colony b(100,50,10,1000);
+    b.findFoodSource(cost);
     b.printResult();
     return 0;
 }

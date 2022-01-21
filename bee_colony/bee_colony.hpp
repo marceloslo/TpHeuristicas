@@ -10,12 +10,14 @@ using namespace std;
 class bee_colony
 {
 public:
+	//receives number of bees,food sources, trials and max iterations as parameters
 	bee_colony(int nBees, int nFoodSources, int nTrials,int iterations);
 	~bee_colony();
 	void greedyCover();
 	vector<int> findFoodSource(int &cost);
 	void initialize(int nFoodSources);
 	void printResult();
+	vector<double> waggle(int totalFitness);
 	void abandonFoodSources();
 	void beeColony();
 private:
