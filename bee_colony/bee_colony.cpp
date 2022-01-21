@@ -7,7 +7,7 @@
 #include <sstream>
 #include <climits>
 #include <cstdlib>
-
+#include "Bees.hpp"
 
 using namespace std;
 
@@ -149,7 +149,7 @@ int randomNumber(int upperBound)
     return rand() % upperBound;
 }
 
-bee_colony::bee_colony()
+bee_colony::bee_colony(int nBees,int sources,int nTrials,int iterations)
 {
     nrows = 0;
     ncolumns = 0;
@@ -158,6 +158,10 @@ bee_colony::bee_colony()
     costs = new int[ncolumns];
     getCosts(ncolumns,costs);;
     this->rows = getRowCovers(ncolumns, nrows);
+    this->trials = nTrials;
+    this->hivesize = nBees;
+    this->maxIter = iterations;
+    this->nFoodSources = sources;
 }
 
 bee_colony::~bee_colony()
@@ -193,7 +197,7 @@ void bee_colony::greedyCover()
 
 //encontra solução aleatória, O(nlogn)
 //pode ser reduzida criando um map em que cada set é mapeia para as linhas que ele cobre(tradeoff espaço x função)
-vector<int> bee_colony::randomSolution(int &cost)
+vector<int> bee_colony::findFoodSource(int &cost)
 {
     map<int,vector<int>> remainingRows = this->rows;
 	vector<int> sol;
@@ -227,6 +231,23 @@ vector<int> bee_colony::randomSolution(int &cost)
 	return sol;
 }
 
+void bee_colony::initialize(int nFoodSources)
+{
+    int k;
+    int i;
+    //inicializa fontes de alimentos e trabalhadoras
+    for (i = 0; i < nFoodSources; i++)
+    {
+        foodSources.push_back(findFoodSource(k));
+        forager.push_back(bee(i, k));
+    }
+    //inicializa o resto como onlooker
+    for (i = nFoodSources; i < hivesize; i++)
+    {
+        onlooker.push_back(bee(ONLOOKER));
+    }
+}
+
 void bee_colony::printResult()
 {
     cout << "Cover: { ";
@@ -236,4 +257,55 @@ void bee_colony::printResult()
     }
     cout << "}" << endl;
     cout << "Total cost: " << totalCost << endl;
+}
+
+void bee_colony::beeColony()
+{
+    initialize(nFoodSources);
+    int k = 0, totalFitness=0, foodSourceFitness;
+    vector<double> probabilities(nFoodSources);
+    unsigned int f,o,s;
+    while (k < this->maxIter)
+    {
+        totalFitness = 0;
+        // fase das abelhas trabalhadoras
+        for (f = 0; f < forager.size(); f++)
+        {
+            //busca de vizinhança
+            forage(f);
+            //soma das fitness achadas(importante para distrib de probabilidade)
+            totalFitness += forager[f].fitness;
+        }
+
+        //fase das abelhas onlooker 
+        //probabilidades cumulativas "waggle dance"
+        probabilities[0] = ((double)forager[0].fitness) / totalFitness;
+        for (f = 1; f < probabilities.size(); f++)
+        {
+            probabilities[f] = (((double)forager[f].fitness) / totalFitness) + probabilities[f - 1];
+        }
+        for (o = 0; o < onlooker.size(); o++)
+        {
+            //number between 0 and 1 (faixa de probabilidade escolhida)
+            double choice = (float)rand() / RAND_MAX;
+            for (f = 0; f < probabilities.size(); f++)
+            {
+                //escolheu essa food source
+                if (choice <= probabilities[f])
+                {
+                    //busca em vizinhança onlooker (overloaded function)
+                    forage(f, o);
+                }
+            }
+        }
+
+        //fase das abelhas scout
+        abandonFoodSources();
+        for (s = 0; s < scout.size(); s++)
+        {
+            foodSources.push_back(findFoodSource(foodSourceFitness));
+            forager.push_back(bee(foodSourceFitness,(int)foodSources.size()-1))
+        }
+        k++;
+    }
 }
