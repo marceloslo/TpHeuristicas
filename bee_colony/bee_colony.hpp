@@ -16,6 +16,7 @@ public:
 	vector<int> findFoodSource(int &cost);
 	void initialize(int nFoodSources);
 	void printResult();
+	void abandonFoodSources();
 	void beeColony();
 private:
 	int hivesize;
@@ -24,11 +25,11 @@ private:
 
 	int nrows, ncolumns;
 	int* costs;
-	int totalCost;
+	int minCost;
 	//quais sets cada linha é coberta por (mapeia linha a sets que a cobrem)
 	map<int,vector<int>> rows;
 	//as fontes de alimento
-	vector<vector<int>> foodSources;
+	//vector<vector<int>> foodSources;
 	//quais linhas cada set cobre
 	vector<set<int>> S;
 	vector<int> solution;

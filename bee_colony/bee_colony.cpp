@@ -153,7 +153,7 @@ bee_colony::bee_colony(int nBees,int sources,int nTrials,int iterations)
 {
     nrows = 0;
     ncolumns = 0;
-    totalCost = 0;
+    minCost = 0;
     getDimension(nrows, ncolumns);
     costs = new int[ncolumns];
     getCosts(ncolumns,costs);;
@@ -185,7 +185,7 @@ void bee_colony::greedyCover()
         argmin = minCostSet(S, U, costs);
         //add it to cover
         cover.push_back(argmin);
-        totalCost += costs[argmin];
+        minCost += costs[argmin];
 
         set<int> update;
         //U = U - S[i]
@@ -226,7 +226,7 @@ vector<int> bee_colony::findFoodSource(int &cost)
         }
     }
 	//remover as duas linhas abaixo na versão final
-	totalCost = cost;
+	minCost = cost;
 	this->solution=sol;
 	return sol;
 }
@@ -238,8 +238,8 @@ void bee_colony::initialize(int nFoodSources)
     //inicializa fontes de alimentos e trabalhadoras
     for (i = 0; i < nFoodSources; i++)
     {
-        foodSources.push_back(findFoodSource(k));
-        forager.push_back(bee(i, k));
+        vector<int>aux=findFoodSource(k);
+        forager.push_back(bee(FORAGER,aux, k));
     }
     //inicializa o resto como onlooker
     for (i = nFoodSources; i < hivesize; i++)
@@ -256,7 +256,23 @@ void bee_colony::printResult()
         cout << it + 1 <<" ";
     }
     cout << "}" << endl;
-    cout << "Total cost: " << totalCost << endl;
+    cout << "Total cost: " << minCost << endl;
+}
+
+void bee_colony::abandonFoodSources()
+{
+    for (vector<bee>::iterator it = onlooker.begin(); it != onlooker.end();)
+    {
+        if (it->cycles >= trials)
+        {
+            scout.push_back(bee(SCOUT));
+            it = onlooker.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
 }
 
 void bee_colony::beeColony()
@@ -275,6 +291,11 @@ void bee_colony::beeColony()
             forage(f);
             //soma das fitness achadas(importante para distrib de probabilidade)
             totalFitness += forager[f].fitness;
+            if (forager[f].fitness < minCost)
+            {
+                minCost = forager[f].fitness;
+                solution = forager[f].foodSource;
+            }
         }
 
         //fase das abelhas onlooker 
@@ -295,6 +316,12 @@ void bee_colony::beeColony()
                 {
                     //busca em vizinhança onlooker (overloaded function)
                     forage(f, o);
+                    if (onlooker[o].fitness < minCost)
+                    {
+                        minCost = onlooker[o].fitness;
+                        solution = onlooker[o].foodSource;
+                    }
+                    break;
                 }
             }
         }
@@ -303,9 +330,19 @@ void bee_colony::beeColony()
         abandonFoodSources();
         for (s = 0; s < scout.size(); s++)
         {
-            foodSources.push_back(findFoodSource(foodSourceFitness));
-            forager.push_back(bee(foodSourceFitness,(int)foodSources.size()-1))
+            //scout acha nova fonte de comida e passa a trabalhar nela.
+            scout[s].foodSource = findFoodSource(foodSourceFitness);
+            scout[s].fitness = foodSourceFitness;
+            scout[s].role = FORAGER;
+            scout[s].cycles = 0;
+            if (scout[s].fitness < minCost)
+            {
+                minCost = scout[s].fitness;
+                solution = scout[s].foodSource;
+            }
+            forager.push_back(scout[s]);
         }
+        scout.clear();
         k++;
     }
 }

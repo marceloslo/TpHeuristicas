@@ -1,8 +1,12 @@
 #ifndef BEES_H
+#include <vector>
+#include <climits>
 #define BEES_H
 #define FORAGER 0
 #define SCOUT 1
 #define ONLOOKER 2
+
+using std::vector;
 
 class bee
 {
@@ -10,11 +14,10 @@ public:
 	bee(int r)
 	{
 		role = r;
-		fitness = 0;
-		foodSource = -1;
+		fitness = INT_MAX;
 		cycles = 0;
 	};
-	bee(int food,int solution)
+	bee(int r,vector<int> food,int solution)
 	{
 		role = 0;
 		fitness = solution;
@@ -29,7 +32,7 @@ public:
 	//best solution found
 	int fitness;
 	//associated foodSource, irrelevant if not employed
-	int foodSource;
+	vector<int> foodSource;
 };
 
 
