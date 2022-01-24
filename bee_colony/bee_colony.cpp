@@ -299,7 +299,7 @@ void bee_colony::beeColony()
         // fase das abelhas trabalhadoras
         for (f = 0; f < forager.size(); f++)
         {
-            //busca de vizinhança
+            //busca de vizinhança (incrementa numero de ciclos da abelha)
             forage(f);
             //soma das fitness achadas(importante para distrib de probabilidade)
             totalFitness += forager[f].fitness;
