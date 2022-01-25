@@ -7,6 +7,7 @@
 #include <sstream>
 #include <climits>
 #include <cstdlib>
+#include <string.h>
 #include "Bees.hpp"
 
 using namespace std;
@@ -248,15 +249,19 @@ void bee_colony::initialize(int nFoodSources)
     }
 }
 
-void bee_colony::printResult()
+void bee_colony::printResult(const char* flag)
 {
-    cout << "Cover: { ";
-    for (const auto& it : solution)
-    {
-        cout << it + 1 <<" ";
-    }
-    cout << "}" << endl;
-    cout << "Total cost: " << minCost << endl;
+	if(strcmp(flag,"t")!=0)
+	{
+		cout << "Cover: { ";
+		for (const auto& it : solution)
+		{
+			cout << it + 1 <<" ";
+		}
+		cout << "}" << endl;
+		cout << "Total cost: ";
+	}
+	cout << minCost << endl;
 }
 
 vector<double> bee_colony::waggle(int totalFitness)
@@ -300,7 +305,7 @@ void bee_colony::beeColony()
         for (f = 0; f < forager.size(); f++)
         {
             //busca de vizinhança (incrementa numero de ciclos da abelha)
-            forage(f);
+            //forage(f);
             //soma das fitness achadas(importante para distrib de probabilidade)
             totalFitness += forager[f].fitness;
             if (forager[f].fitness < minCost)
@@ -324,7 +329,7 @@ void bee_colony::beeColony()
                 if (choice <= probabilities[f])
                 {
                     //busca em vizinhança onlooker (overloaded function)
-                    forage(f, o);
+                    //forage(f, o);
                     if (onlooker[o].fitness < minCost)
                     {
                         minCost = onlooker[o].fitness;

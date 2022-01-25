@@ -24,7 +24,7 @@ public:
 	void initialize(int nFoodSources);
 	
 	// imprime resultado formatado
-	void printResult();
+	void printResult(const char* flag);
 	
 	// encontra o vetor de probabilidades de uma abelha onlooker ir para a food source k
 	vector<double> waggle(int totalFitness);
