@@ -38,19 +38,17 @@ public:
 	//função de busca de vizinhança. Se achar solução melhor lembrar de reduzir para 0 os ciclos da abelha que busca, caso contrário, incrementar.
 	//void forage()(???) argumentos de função e etc a definir
 private:
-	int hivesize;
 	vector<bee> forager, scout, onlooker;
-	int trials,maxIter,nFoodSources;
+
+	//parametros
+	int trials,maxIter,nFoodSources,hivesize;;
 
 	int nrows, ncolumns;
 	int* costs;
 	int minCost;
 	//quais sets cada linha é coberta por (mapeia linha a sets que a cobrem)
 	map<int,vector<int>> rows;
-	//as fontes de alimento
-	//vector<vector<int>> foodSources;
-	//quais linhas cada set cobre(não está sendo usado)
-	vector<set<int>> S;
+
 	vector<int> solution;
 };
 

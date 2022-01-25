@@ -38,44 +38,6 @@ void getCosts(int n,int costs[])
     }
 }
 
-//gets covers for each set(dependendo do que agnt for implementar, pode ser necessário mudar isso pra pegar quais sets cobrem cada linha no lugar de quais linhas um set cobre)
-vector<set<int>> getCovers(int n, int m)
-{
-    vector<set<int>> covers(n);
-    string aux;
-    bool cnt = true;
-    int numberOfSets, counter, elementId = 0, setId;
-    while (getline(cin, aux))
-    {
-        stringstream s(aux);
-        if (!cnt)
-        {
-            if (counter >= numberOfSets)
-            {
-                cnt = true;
-                elementId++;
-            }
-            else
-            {
-                while (s >> setId)
-                {
-                    counter++;
-                    //conjunto cobre o elemento i
-                    covers[setId - 1].insert(elementId);
-                }
-            }
-        }
-        if (cnt)
-        {
-            //numero de sets que cobrem o elemento
-            s >> numberOfSets;
-            cnt = false;
-            counter = 0;
-        }
-    }
-    return covers;
-}
-
 //quais sets cobrem quais linhas
 map<int,vector<int>> getRowCovers(int n, int m)
 {
@@ -168,32 +130,6 @@ bee_colony::bee_colony(int nBees,int sources,int nTrials,int iterations)
 bee_colony::~bee_colony()
 {
     delete[] costs;
-}
-
-//algoritmo greedy básico O(mn^2)
-void bee_colony::greedyCover()
-{
-    vector<int> cover;
-    set<int> U;
-    int argmin;
-    for (int i = 0; i < nrows; i++)
-    {
-        U.insert(i);
-    }
-    while (!U.empty())
-    {
-        //find set with minimum insertion cost(optimally covers all sets)
-        argmin = minCostSet(S, U, costs);
-        //add it to cover
-        cover.push_back(argmin);
-        minCost += costs[argmin];
-
-        set<int> update;
-        //U = U - S[i]
-        set_difference(U.begin(), U.end(), S[argmin].begin(), S[argmin].end(), inserter(update, update.begin()));
-        U = update;
-    }
-    solution = cover;
 }
 
 //encontra solução aleatória, O(nlogn)
