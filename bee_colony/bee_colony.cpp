@@ -133,7 +133,7 @@ bee_colony::~bee_colony()
     delete[] costs;
 }
 
-//encontra solução aleatória, O(nlogn)
+//encontra solução aleatória, O(nlogn) -> n sets removidos e cada remoção custa log n
 //pode ser reduzida criando um map em que cada set é mapeia para as linhas que ele cobre(tradeoff espaço x função)
 vector<int> bee_colony::findFoodSource(int &cost)
 {
