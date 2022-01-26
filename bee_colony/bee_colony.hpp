@@ -49,6 +49,9 @@ private:
 	//quais sets cada linha é coberta por (mapeia linha a sets que a cobrem)
 	map<int,vector<int>> rows;
 
+	//quais linhas cada set cobre
+	map<int,vector<int>> sets;
+	
 	vector<int> solution;
 };
 

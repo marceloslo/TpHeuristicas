@@ -39,7 +39,7 @@ void getCosts(int n,int costs[])
 }
 
 //quais sets cobrem quais linhas
-map<int,vector<int>> getRowCovers(int n, int m)
+map<int,vector<int>> getRowCovers(int n, int m,map<int,vector<int>> &sets)
 {
     map<int,vector<int>> covers;
     string aux;
@@ -62,6 +62,7 @@ map<int,vector<int>> getRowCovers(int n, int m)
                     counter++;
                     //conjunto cobre o elemento i
                     covers[elementId].push_back(setId-1);
+					sets[setId-1].push_back(elementId);
                 }
             }
         }
@@ -120,7 +121,7 @@ bee_colony::bee_colony(int nBees,int sources,int nTrials,int iterations)
     getDimension(nrows, ncolumns);
     costs = new int[ncolumns];
     getCosts(ncolumns,costs);;
-    this->rows = getRowCovers(ncolumns, nrows);
+    this->rows = getRowCovers(ncolumns, nrows,sets);
     this->trials = nTrials;
     this->hivesize = nBees;
     this->maxIter = iterations;
@@ -148,7 +149,13 @@ vector<int> bee_colony::findFoodSource(int &cost)
         sol.push_back(set);
         cost += costs[set];
 
-        //remove ("cobre") todas linhas que contem esse conjunto
+
+        //remove ("cobre") todas linhas que esse conjunto cobre
+        for (const auto& it : sets[set])
+        {
+            remainingRows.erase(it);
+        }
+        /*
         for (auto it = remainingRows.begin();it!=remainingRows.end();)
         {
             bool found = binary_search(it->second.begin(), it->second.end(), set);
@@ -160,7 +167,7 @@ vector<int> bee_colony::findFoodSource(int &cost)
             {
                 ++it;
             }
-        }
+        }*/
     }
 	//remover as duas linhas abaixo na versão final
 	minCost = cost;

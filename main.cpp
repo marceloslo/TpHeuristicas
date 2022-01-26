@@ -14,7 +14,7 @@ int main(int argc,char* argv[])
     int nFoodSources = (argc > 3) ? atoi(argv[3]) : 1;
     int maxTrials = (argc > 4) ? atoi(argv[4]) : 1;
     int maxIters = (argc > 5) ? atoi(argv[5]) : 1;
-    bee_colony b(100,50,10,1000);
+    bee_colony b(hiveSize,nFoodSources,maxTrials,maxIters);
     b.findFoodSource(cost);
     b.printResult(flag);
     return 0;
