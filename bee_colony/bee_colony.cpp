@@ -211,10 +211,10 @@ vector<double> bee_colony::waggle(int totalFitness)
 {
     vector<double> probabilities(nFoodSources);
     unsigned int f;
-    probabilities[0] = ((double)forager[0].fitness) / totalFitness;
+    probabilities[0] = ((double)1/forager[0].fitness) / totalFitness;
     for (f = 1; f < probabilities.size(); f++)
     {
-        probabilities[f] = (((double)forager[f].fitness) / totalFitness) + probabilities[f - 1];
+        probabilities[f] = ((((double)1/forager[f].fitness)) / totalFitness) + probabilities[f - 1];
     }
     return probabilities;
 }
@@ -250,7 +250,7 @@ void bee_colony::beeColony()
             //busca de vizinhança (incrementa numero de ciclos da abelha)
             //forage(f);
             //soma das fitness achadas(importante para distrib de probabilidade)
-            totalFitness += forager[f].fitness;
+            totalFitness += (1/forager[f].fitness);
             if (forager[f].fitness < minCost)
             {
                 minCost = forager[f].fitness;
@@ -258,7 +258,7 @@ void bee_colony::beeColony()
             }
         }
 
-        //fase das abelhas onlooker 
+        //fase das abelhas onlooker
         //probabilidades cumulativas "waggle dance"
         probabilities = waggle(totalFitness);
         //abelhas onlooker exploram vizinhança das foodSources
