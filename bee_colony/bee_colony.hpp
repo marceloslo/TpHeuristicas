@@ -14,9 +14,6 @@ public:
 	bee_colony(int nBees, int nFoodSources, int nTrials,int iterations);
 	~bee_colony();
 	
-	//inutil só deixei pq ja tava feito
-	void greedyCover();
-	
 	//acha aleatóriamente soluções, usado para scout e inicialização
 	vector<int> findFoodSource(int &cost);
 	
@@ -29,6 +26,12 @@ public:
 	// encontra o vetor de probabilidades de uma abelha onlooker ir para a food source k
 	vector<double> waggle(int totalFitness);
 	
+	//checa se solução é viável
+	bool viable(vector<int> solution);
+	
+	//busca em vizinhança 1-flip
+	void forage(int f);
+
 	// abandona as food sources que estagnaram
 	void abandonFoodSources();
 	

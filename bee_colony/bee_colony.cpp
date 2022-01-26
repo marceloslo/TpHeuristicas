@@ -137,6 +137,7 @@ bee_colony::~bee_colony()
 //pode ser reduzida criando um map em que cada set é mapeia para as linhas que ele cobre(tradeoff espaço x função)
 vector<int> bee_colony::findFoodSource(int &cost)
 {
+    srand(rand());
     map<int,vector<int>> remainingRows = this->rows;
 	vector<int> sol;
     int i,set;
@@ -235,6 +236,93 @@ void bee_colony::abandonFoodSources()
     }
 }
 
+bool contains(vector<int> vec, const int& e)
+{
+    if (find(vec.begin(), vec.end(), e) != vec.end())
+    {
+        return true;
+    }
+    return false;
+}
+
+bool bee_colony::viable(vector<int> solution)
+{
+    set<int> coveredRows;
+    for (const auto& it : solution)
+    {
+        for (const auto& jt : sets[it])
+        {
+            coveredRows.insert(jt);
+        }
+    }
+    return (int)coveredRows.size() == nrows;
+}
+
+void bee_colony::forage(int f)
+{
+    //read current solution
+    bee b = forager[f];
+    vector<int> currSolution = b.foodSource;
+
+    set<int> remaining;
+    for (int i = 0; i < ncolumns; i++) {
+        remaining.insert(i);
+    }
+    for (const auto& it : currSolution)
+    {
+        remaining.erase(it);
+    }
+    int rSwap = randomNumber(currSolution.size() - 1);
+
+    int fitness = b.fitness;
+    int newFitness = fitness;
+
+    vector<int> newSolution = currSolution;
+    newFitness -= costs[newSolution[rSwap]];
+    newSolution.erase(newSolution.begin() + rSwap);
+    set<int> remainingRows;
+    for (int i = 0; i < nrows; i++)
+    {
+        remainingRows.insert(i);
+    }
+    for (const auto& it : newSolution)
+    {
+        for (const auto& jt : sets[it])
+        {
+            remainingRows.erase(jt);
+        }
+    }
+    vector<int> finalSolution;
+
+    for (const auto& it : remaining)
+    {
+        set<int> newRows = remainingRows;
+        for (const auto& jt : sets[it])
+        {
+            newRows.erase(jt);
+        }
+        if (newRows.empty())
+        {
+            newSolution.push_back(it);
+            newFitness += costs[it];
+            if (newFitness < fitness)
+            {
+                b.fitness = newFitness;
+                b.foodSource = newSolution;
+                b.cycles = 0;
+                forager[f] = b;
+                return;
+            }
+            else {
+                newFitness -= costs[it];
+                newSolution.pop_back();
+            }
+        }
+    }
+    b.cycles++;
+    forager[f] = b;
+}
+
 void bee_colony::beeColony()
 {
     int k = 0, totalFitness = 0, foodSourceFitness;
@@ -248,7 +336,7 @@ void bee_colony::beeColony()
         for (f = 0; f < forager.size(); f++)
         {
             //busca de vizinhança (incrementa numero de ciclos da abelha)
-            //forage(f);
+            forage(f);
             //soma das fitness achadas(importante para distrib de probabilidade)
             totalFitness += (1/forager[f].fitness);
             if (forager[f].fitness < minCost)
@@ -272,7 +360,7 @@ void bee_colony::beeColony()
                 if (choice <= probabilities[f])
                 {
                     //busca em vizinhança onlooker (overloaded function)
-                    //forage(f, o);
+                    forage(f);
                     if (onlooker[o].fitness < minCost)
                     {
                         minCost = onlooker[o].fitness;

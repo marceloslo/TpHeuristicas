@@ -1,21 +1,26 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
+#include <chrono>
 #include "bee_colony/bee_colony.hpp"
 
 using namespace std;
 
 int main(int argc,char* argv[])
 {
+
 	srand(time(NULL));
-	int cost;
 	const char *flag = (argc>1) ? argv[1] : "a";
-    int hiveSize = (argc > 2) ? atoi(argv[2]) : 1;
-    int nFoodSources = (argc > 3) ? atoi(argv[3]) : 1;
-    int maxTrials = (argc > 4) ? atoi(argv[4]) : 1;
-    int maxIters = (argc > 5) ? atoi(argv[5]) : 1;
+    int hiveSize = (argc > 2) ? atoi(argv[2]) : 10;
+    int nFoodSources = (argc > 3) ? atoi(argv[3]) : 5;
+    int maxTrials = (argc > 4) ? atoi(argv[4]) : 10;
+    int maxIters = (argc > 5) ? atoi(argv[5]) : 10;
     bee_colony b(hiveSize,nFoodSources,maxTrials,maxIters);
-    b.findFoodSource(cost);
+    auto start_time = std::chrono::high_resolution_clock::now();
+    b.beeColony();
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto time = end_time - start_time;
     b.printResult(flag);
+    cout << time / std::chrono::milliseconds(1) << endl;
     return 0;
 }
