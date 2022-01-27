@@ -2,3 +2,5 @@ ConsoleApplication1/
 *.exe
 *.o
 *.ipynb
+table.xlsx
+~$table.xlsx
