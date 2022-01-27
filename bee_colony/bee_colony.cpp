@@ -117,7 +117,7 @@ bee_colony::bee_colony(int nBees,int sources,int nTrials,int iterations)
 {
     nrows = 0;
     ncolumns = 0;
-    minCost = 0;
+    minCost = INT_MAX;
     getDimension(nrows, ncolumns);
     costs = new int[ncolumns];
     getCosts(ncolumns,costs);;
@@ -171,8 +171,8 @@ vector<int> bee_colony::findFoodSource(int &cost)
         }*/
     }
 	//remover as duas linhas abaixo na versão final
-	minCost = cost;
-	this->solution=sol;
+	//minCost = cost;
+	//this->solution=sol;
 	return sol;
 }
 
@@ -208,14 +208,14 @@ void bee_colony::printResult(const char* flag)
 	cout << minCost << endl;
 }
 
-vector<double> bee_colony::waggle(int totalFitness)
+vector<double> bee_colony::waggle(long double totalFitness)
 {
-    vector<double> probabilities(nFoodSources);
+    vector<double> probabilities(forager.size());
     unsigned int f;
-    probabilities[0] = ((double)1/forager[0].fitness) / totalFitness;
+    probabilities[0] = ((long double)1/forager[0].fitness) / totalFitness;
     for (f = 1; f < probabilities.size(); f++)
     {
-        probabilities[f] = ((((double)1/forager[f].fitness)) / totalFitness) + probabilities[f - 1];
+        probabilities[f] = ((((long double)1/forager[f].fitness)) / totalFitness) + probabilities[f - 1];
     }
     return probabilities;
 }
@@ -258,7 +258,7 @@ bool bee_colony::viable(vector<int> solution)
     return (int)coveredRows.size() == nrows;
 }
 
-void bee_colony::forage(int f)
+/*void bee_colony::forage(int f)
 {
     //read current solution
     bee b = forager[f];
@@ -321,11 +321,77 @@ void bee_colony::forage(int f)
     }
     b.cycles++;
     forager[f] = b;
+}*/
+
+void bee_colony::forage(int f)
+{
+    forage(f, forager[f]);
+}
+
+//pior dos casos O(tamanho de solução^2)
+void bee_colony::forage(int f, bee& b)
+{
+    int randomBee = randomNumber(forager.size());
+    while (randomBee==f)
+    {
+        randomBee = randomNumber(forager.size());
+    }
+    sort(forager[f].foodSource.begin(), forager[f].foodSource.end());
+    sort(forager[randomBee].foodSource.begin(), forager[randomBee].foodSource.end());
+    bee otherBee = forager[randomBee];
+    if (otherBee.foodSource == forager[f].foodSource)
+    {
+        //forager.erase(forager.begin() + f);
+        forager[f].cycles = INT_MAX;
+        //scout.push_back(bee(SCOUT));
+        return;
+    }
+    vector<int> currentSolution = forager[f].foodSource;
+    int newFitness=b.fitness;
+    int addcols = randomNumber((int)forager[randomBee].foodSource.size());
+    int rmcols = randomNumber((int)forager[f].foodSource.size());
+    int i,col;
+
+    //adds random columns from other solution pior dos casos:c*n (onde n proporcional ao tamanho de current solution)
+    for (i = 0; i < addcols; i++)
+    {
+        col = forager[randomBee].foodSource[randomNumber((int)forager[randomBee].foodSource.size())];
+        auto it = lower_bound(currentSolution.begin(), currentSolution.end(), col);
+        //se já não estiver no vector, adicione
+        if ((it-currentSolution.begin())>=(int)currentSolution.size() || (*it)!=col)
+        {
+            currentSolution.insert(it,col);
+            newFitness += costs[col];
+        }
+    }
+
+    //removes random columns from solution pior dos casos:r*n (onde n proporcional ao tamanho de current solution)
+    for (i = 0; i < rmcols; i++)
+    {
+        col = randomNumber(currentSolution.size());
+        newFitness -= costs[currentSolution[col]];
+        currentSolution.erase(currentSolution.begin() + col);
+    }
+
+    repair(currentSolution, newFitness);
+
+    if (newFitness < b.fitness)
+    {
+        b.foodSource = currentSolution;
+        b.fitness = newFitness;
+        b.cycles = 0;
+    }
+    else
+    {
+        b.cycles++;
+    }
+    return;
 }
 
 void bee_colony::beeColony()
 {
-    int k = 0, totalFitness = 0, foodSourceFitness;
+    int k = 0, foodSourceFitness;
+    long double totalFitness;
     unsigned int f, o, s;
     vector<double> probabilities;
     initialize(nFoodSources);
@@ -338,7 +404,7 @@ void bee_colony::beeColony()
             //busca de vizinhança (incrementa numero de ciclos da abelha)
             forage(f);
             //soma das fitness achadas(importante para distrib de probabilidade)
-            totalFitness += (1/forager[f].fitness);
+            totalFitness += ((long double)1)/forager[f].fitness;
             if (forager[f].fitness < minCost)
             {
                 minCost = forager[f].fitness;
@@ -360,7 +426,8 @@ void bee_colony::beeColony()
                 if (choice <= probabilities[f])
                 {
                     //busca em vizinhança onlooker (overloaded function)
-                    forage(f);
+                    onlooker[o].fitness = forager[f].fitness;
+                    forage(f,onlooker[o]);
                     if (onlooker[o].fitness < minCost)
                     {
                         minCost = onlooker[o].fitness;
@@ -389,5 +456,57 @@ void bee_colony::beeColony()
         }
         scout.clear();
         k++;
+    }
+}
+
+//repara solução
+void bee_colony::repair(vector<int>& solution,int &fitness)
+{
+    unsigned int i;
+    map<int, vector<int>> remainingRows = rows;
+    for (i = 0; i < solution.size(); i++)
+    {
+        for (const auto& it : sets[solution[i]])
+        {
+            remainingRows.erase(it);
+        }
+    }
+    int argmin,randomrow,count=0;
+    while (!remainingRows.empty())
+    {
+        randomrow = randomNumber((int)remainingRows.size());
+        argmin = remainingRows.begin()->second[0];
+        //seleciona aleatóriamente uma linha a ser coberta greedy
+        for (map<int, vector<int>>::iterator k = remainingRows.begin(); k != remainingRows.end(); k++)
+        {
+            if (count == randomrow)
+            {
+                for (const auto& it : k->second)
+                {
+                    if (costs[it] < costs[argmin])
+                    {
+                        argmin = it;
+                    }
+                }
+            }
+            count++;
+        }
+        /*for (const auto& it : remainingRows.begin()->second)
+        {
+            if (costs[it] < costs[argmin])
+            {
+                argmin = it;
+            }
+        }*/
+        //i = randomNumber(remainingRows.begin()->second.size());
+        //argmin = remainingRows.begin()->second[i];
+        solution.push_back(argmin);
+        fitness += costs[argmin];
+
+        //remove ("cobre") todas linhas que esse conjunto cobre
+        for (const auto& it : sets[argmin])
+        {
+            remainingRows.erase(it);
+        }
     }
 }

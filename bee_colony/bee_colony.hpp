@@ -24,13 +24,16 @@ public:
 	void printResult(const char* flag);
 	
 	// encontra o vetor de probabilidades de uma abelha onlooker ir para a food source k
-	vector<double> waggle(int totalFitness);
+	vector<double> waggle(long double totalFitness);
 	
 	//checa se solução é viável
 	bool viable(vector<int> solution);
 	
 	//busca em vizinhança 1-flip
 	void forage(int f);
+
+	//busca em vizinhança troca de colunas
+	void forage(int f,bee &b);
 
 	// abandona as food sources que estagnaram
 	void abandonFoodSources();
@@ -41,6 +44,9 @@ public:
 	//função de busca de vizinhança. Se achar solução melhor lembrar de reduzir para 0 os ciclos da abelha que busca, caso contrário, incrementar.
 	//void forage()(???) argumentos de função e etc a definir
 private:
+
+	void repair(vector<int> &solution,int &fitness);
+
 	vector<bee> forager, scout, onlooker;
 
 	//parametros
