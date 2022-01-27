@@ -12,6 +12,10 @@ class bee_colony
 public:
 	//receives number of bees,food sources, trials and max iterations as parameters
 	bee_colony(int nBees, int nFoodSources, int nTrials,int iterations);
+
+	//receives number of bees,food sources, trials,flags and max iterations as parameters
+	bee_colony(int nBees, int nFoodSources, int nTrials, int iterations,const char *flag);
+
 	~bee_colony();
 	
 	//acha aleatóriamente soluções, usado para scout e inicialização
@@ -21,13 +25,10 @@ public:
 	void initialize(int nFoodSources);
 	
 	// imprime resultado formatado
-	void printResult(const char* flag);
+	void printResult();
 	
 	// encontra o vetor de probabilidades de uma abelha onlooker ir para a food source k
 	vector<double> waggle(long double totalFitness);
-	
-	//checa se solução é viável
-	bool viable(vector<int> solution);
 	
 	//busca em vizinhança 1-flip
 	void forage(int f);
@@ -46,6 +47,7 @@ public:
 private:
 
 	void repair(vector<int> &solution,int &fitness);
+	void flip2(int f, bee& b);
 
 	vector<bee> forager, scout, onlooker;
 
@@ -55,6 +57,8 @@ private:
 	int nrows, ncolumns;
 	int* costs;
 	int minCost;
+	const char* flag;
+
 	//quais sets cada linha é coberta por (mapeia linha a sets que a cobrem)
 	map<int,vector<int>> rows;
 

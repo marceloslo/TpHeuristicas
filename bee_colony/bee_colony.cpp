@@ -115,6 +115,7 @@ int randomNumber(int upperBound)
 
 bee_colony::bee_colony(int nBees,int sources,int nTrials,int iterations)
 {
+    this->flag = "a";
     nrows = 0;
     ncolumns = 0;
     minCost = INT_MAX;
@@ -122,6 +123,22 @@ bee_colony::bee_colony(int nBees,int sources,int nTrials,int iterations)
     costs = new int[ncolumns];
     getCosts(ncolumns,costs);;
     this->rows = getRowCovers(ncolumns, nrows,sets);
+    this->trials = nTrials;
+    this->hivesize = nBees;
+    this->maxIter = iterations;
+    this->nFoodSources = sources;
+}
+
+bee_colony::bee_colony(int nBees, int sources, int nTrials, int iterations, const char* flag)
+{
+    this->flag = flag;
+    nrows = 0;
+    ncolumns = 0;
+    minCost = INT_MAX;
+    getDimension(nrows, ncolumns);
+    costs = new int[ncolumns];
+    getCosts(ncolumns, costs);;
+    this->rows = getRowCovers(ncolumns, nrows, sets);
     this->trials = nTrials;
     this->hivesize = nBees;
     this->maxIter = iterations;
@@ -185,6 +202,11 @@ void bee_colony::initialize(int nFoodSources)
     {
         vector<int>aux=findFoodSource(k);
         forager.push_back(bee(FORAGER,aux, k));
+        if (minCost > k)
+        {
+            minCost = k;
+            solution = aux;
+        }
     }
     //inicializa o resto como onlooker
     for (i = nFoodSources; i < hivesize; i++)
@@ -193,9 +215,9 @@ void bee_colony::initialize(int nFoodSources)
     }
 }
 
-void bee_colony::printResult(const char* flag)
+void bee_colony::printResult()
 {
-	if(strcmp(flag,"t")!=0)
+	if(strcmp(flag,"a")==0)
 	{
 		cout << "Cover: { ";
 		for (const auto& it : solution)
@@ -203,9 +225,15 @@ void bee_colony::printResult(const char* flag)
 			cout << it + 1 <<" ";
 		}
 		cout << "}" << endl;
-		cout << "Total cost: ";
 	}
-	cout << minCost << endl;
+    if (strcmp(flag, "a") == 0||strcmp(flag,"t")==0)
+    {
+        cout << "Custo minimo: "<<minCost << endl;
+    }
+    else if (strcmp(flag, "g") == 0)
+    {
+        cout << minCost << " ";
+    }
 }
 
 vector<double> bee_colony::waggle(long double totalFitness)
@@ -235,93 +263,6 @@ void bee_colony::abandonFoodSources()
         }
     }
 }
-
-bool contains(vector<int> vec, const int& e)
-{
-    if (find(vec.begin(), vec.end(), e) != vec.end())
-    {
-        return true;
-    }
-    return false;
-}
-
-bool bee_colony::viable(vector<int> solution)
-{
-    set<int> coveredRows;
-    for (const auto& it : solution)
-    {
-        for (const auto& jt : sets[it])
-        {
-            coveredRows.insert(jt);
-        }
-    }
-    return (int)coveredRows.size() == nrows;
-}
-
-/*void bee_colony::forage(int f)
-{
-    //read current solution
-    bee b = forager[f];
-    vector<int> currSolution = b.foodSource;
-
-    set<int> remaining;
-    for (int i = 0; i < ncolumns; i++) {
-        remaining.insert(i);
-    }
-    for (const auto& it : currSolution)
-    {
-        remaining.erase(it);
-    }
-    int rSwap = randomNumber(currSolution.size() - 1);
-
-    int fitness = b.fitness;
-    int newFitness = fitness;
-
-    vector<int> newSolution = currSolution;
-    newFitness -= costs[newSolution[rSwap]];
-    newSolution.erase(newSolution.begin() + rSwap);
-    set<int> remainingRows;
-    for (int i = 0; i < nrows; i++)
-    {
-        remainingRows.insert(i);
-    }
-    for (const auto& it : newSolution)
-    {
-        for (const auto& jt : sets[it])
-        {
-            remainingRows.erase(jt);
-        }
-    }
-    vector<int> finalSolution;
-
-    for (const auto& it : remaining)
-    {
-        set<int> newRows = remainingRows;
-        for (const auto& jt : sets[it])
-        {
-            newRows.erase(jt);
-        }
-        if (newRows.empty())
-        {
-            newSolution.push_back(it);
-            newFitness += costs[it];
-            if (newFitness < fitness)
-            {
-                b.fitness = newFitness;
-                b.foodSource = newSolution;
-                b.cycles = 0;
-                forager[f] = b;
-                return;
-            }
-            else {
-                newFitness -= costs[it];
-                newSolution.pop_back();
-            }
-        }
-    }
-    b.cycles++;
-    forager[f] = b;
-}*/
 
 void bee_colony::forage(int f)
 {
@@ -388,6 +329,10 @@ void bee_colony::forage(int f, bee& b)
     return;
 }
 
+/*void bee_colony::forage(int f, bee& b)
+{
+    flip2(f, b);
+}*/
 void bee_colony::beeColony()
 {
     int k = 0, foodSourceFitness;
@@ -397,6 +342,10 @@ void bee_colony::beeColony()
     initialize(nFoodSources);
     while (k < this->maxIter)
     {
+        if (strcmp(flag, "p") == 0)
+        {
+            cout << k << " " << minCost << endl;
+        }
         totalFitness = 0;
         // fase das abelhas trabalhadoras
         for (f = 0; f < forager.size(); f++)
@@ -508,5 +457,83 @@ void bee_colony::repair(vector<int>& solution,int &fitness)
         {
             remainingRows.erase(it);
         }
+    }
+}
+
+void bee_colony::flip2(int f, bee& b)
+{
+    int rc1 = randomNumber(forager[f].foodSource.size()), rc2= randomNumber(forager[f].foodSource.size());
+    while (rc1 == rc2)
+    {
+        rc2 = randomNumber(forager[f].foodSource.size());
+    }
+    vector<int> newSolution = forager[f].foodSource;
+    
+    //remove 2 columns randomly
+    int newFitness = forager[f].fitness- costs[newSolution[rc1]]- costs[newSolution[rc2]];
+    if (rc1 > rc2)
+    {
+        newSolution.erase(newSolution.begin() + rc1);
+        newSolution.erase(newSolution.begin() + rc2);
+    }
+    else
+    {
+        newSolution.erase(newSolution.begin() + rc2);
+        newSolution.erase(newSolution.begin() + rc1);
+    }
+
+    //determine remaining rows
+    map<int, vector<int>> remainingRows = rows;
+    unsigned int i;
+    for (i = 0; i < newSolution.size(); i++)
+    {
+        for (const auto& it : sets[newSolution[i]])
+        {
+            remainingRows.erase(it);
+        }
+    }
+
+    //add up to 2 new columns greedly
+    int argmin, randomrow, count = 0;
+    i = 0;
+    while(!remainingRows.empty() && i<2)
+    {
+        randomrow = randomNumber((int)remainingRows.size());
+        argmin = remainingRows.begin()->second[0];
+        //seleciona aleatóriamente uma linha a ser coberta greedy
+        for (map<int, vector<int>>::iterator k = remainingRows.begin(); k != remainingRows.end(); k++)
+        {
+            if (count == randomrow)
+            {
+                for (const auto& it : k->second)
+                {
+                    if (costs[it] < costs[argmin])
+                    {
+                        argmin = it;
+                    }
+                }
+            }
+            count++;
+        }
+        newSolution.push_back(argmin);
+        newFitness += costs[argmin];
+
+        //remove ("cobre") todas linhas que esse conjunto cobre
+        for (const auto& it : sets[argmin])
+        {
+            remainingRows.erase(it);
+        }
+        ++i;
+    }
+    //checa se houve melhora
+    if ((!remainingRows.empty()) || (newFitness >= b.fitness))
+    {
+        b.cycles++;
+    }
+    else
+    {
+        b.cycles = 0;
+        b.fitness = newFitness;
+        b.foodSource = newSolution;
     }
 }
